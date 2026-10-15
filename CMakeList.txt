@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.21)
+project(factorlab VERSION 1.0 LANGUAGES CXX)
+
+# En CMake, l'assignation se fait avec "set()"
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Déclaration de la bibliothèque
+add_library(Factorlab STATIC src/data.cpp)
+target_include_directories(Factorlab PUBLIC "include/")
+
+# Les blocs conditionnels enveloppent les commandes
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    target_compile_options(Factorlab PUBLIC -O2 -DNDEBUG -march=native)
+elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
+    target_compile_options(Factorlab PUBLIC -g -fsanitize=address,undefined)
+    # Les sanitizers ont aussi besoin d'être au niveau de l'éditeur de liens
+    target_link_options(Factorlab PUBLIC -fsanitize=address,undefined)
+endif()
+
+# Exécutables de tests reliés à la bibliothèque
+add_executable(test_matrix tests/test_matrix.cpp)
+target_link_libraries(test_matrix PRIVATE Factorlab)
+
+add_executable(test_decompositions tests/test_decompositions.cpp)
+target_link_libraries(test_decompositions PRIVATE Factorlab)
+
+add_executable(test_factors tests/test_factors.cpp)
+target_link_libraries(test_factors PRIVATE Factorlab)
+
+# Le benchmark (que tu avais oublié)
+add_executable(bench_gemm bench/bench_gemm.cpp)
+target_link_libraries(bench_gemm PRIVATE Factorlab)
